@@ -51,7 +51,7 @@ func audioDevices() -> [AudioDevice] {
 @main
 struct AppAudioPipe {
     static func main() async {
-        print("AppAudioPipe spike")
+        print(DiagnosticText.banner)
         print("\nOutput devices:")
         for device in audioDevices().filter(\.hasOutput) {
             print("- [\(device.id)] \(device.name)")
