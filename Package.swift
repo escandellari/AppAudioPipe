@@ -14,7 +14,17 @@ let package = Package(
         ),
         .testTarget(
             name: "AppAudioPipeTests",
-            dependencies: ["AppAudioPipe"]
+            dependencies: ["AppAudioPipe"],
+            swiftSettings: [
+                .unsafeFlags(["-F", "/Library/Developer/CommandLineTools/Library/Developer/Frameworks"])
+            ],
+            linkerSettings: [
+                .unsafeFlags([
+                    "-F", "/Library/Developer/CommandLineTools/Library/Developer/Frameworks",
+                    "-Xlinker", "-rpath", "-Xlinker", "/Library/Developer/CommandLineTools/Library/Developer/Frameworks",
+                    "-Xlinker", "-rpath", "-Xlinker", "/Library/Developer/CommandLineTools/Library/Developer/usr/lib",
+                ])
+            ]
         ),
     ],
     swiftLanguageModes: [.v6]
