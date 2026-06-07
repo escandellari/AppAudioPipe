@@ -1,6 +1,6 @@
 # AppAudioPipe
 
-AppAudioPipe is an early Swift command-line prototype for exploring per-application audio capture and routing on macOS. The intended direction is documented in [PRD.md](PRD.md), with investigation notes in [TECHNICAL_SPIKE.md](TECHNICAL_SPIKE.md).
+AppAudioPipe is an early Swift command-line prototype for exploring per-application audio capture and routing on macOS. The intended direction is documented in [PRD.md](PRD.md), with investigation notes in [TECHNICAL_SPIKE.md](TECHNICAL_SPIKE.md). For the local Pocket Bard/Kenku/Discord routing checklist and recovery steps, see [SETUP.md](SETUP.md).
 
 ## Current status
 
