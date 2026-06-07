@@ -19,11 +19,11 @@ struct ReadmeSmokeTests {
         let readme = try String(contentsOf: readmeURL, encoding: .utf8)
 
         #expect(readme.contains("swift build"))
-        #expect(readme.contains("swift run AppAudioPipe"))
+        #expect(readme.contains("swift run AppAudioPipe --help"))
         #expect(readme.contains("swift test"))
         #expect(readme.contains("macOS"))
         #expect(readme.contains("Screen & System Audio Recording"))
-        #expect(readme.contains("no routing/capture pipeline yet"))
+        #expect(readme.contains("copy that source's audio to a selected output device"))
         #expect(readme.contains("PRD.md"))
         #expect(readme.contains("TECHNICAL_SPIKE.md"))
     }
