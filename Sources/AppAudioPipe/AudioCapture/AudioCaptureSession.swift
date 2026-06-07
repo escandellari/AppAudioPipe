@@ -33,7 +33,7 @@ public struct AudioCaptureSession: Sendable {
         }
     }
 
-    private static func configuration() -> SCStreamConfiguration {
+    static func configuration() -> SCStreamConfiguration {
         let configuration = SCStreamConfiguration()
         configuration.capturesAudio = true
         configuration.sampleRate = 48_000
@@ -55,7 +55,7 @@ public struct AudioCaptureSession: Sendable {
     }
 }
 
-private struct ScreenCaptureKitCaptureCatalog {
+struct ScreenCaptureKitCaptureCatalog: @unchecked Sendable {
     let sources: [CaptureSource]
     private let applicationsByPID: [Int32: SCRunningApplication]
     private let windowsByID: [UInt32: SCWindow]
@@ -185,55 +185,10 @@ private func renderCaptureError(_ error: Error) -> String {
     return "Audio capture failed: \(String(describing: error))"
 }
 
-private func mapScreenCaptureKitError(_ error: Error) -> Error {
+func mapScreenCaptureKitError(_ error: Error) -> Error {
     let nsError = error as NSError
     if nsError.domain == SCStreamErrorDomain && nsError.code == -3801 {
         return CaptureSessionError.permissionDenied
     }
     return error
-}
-
-private func normalizedSamples(from sampleBuffer: CMSampleBuffer) throws -> [Float] {
-    guard let formatDescription = CMSampleBufferGetFormatDescription(sampleBuffer),
-          let streamDescriptionPointer = CMAudioFormatDescriptionGetStreamBasicDescription(formatDescription)
-    else { throw CaptureSessionError.unsupportedAudioFormat("Missing audio format description.") }
-
-    let streamDescription = streamDescriptionPointer.pointee
-    let formatID = streamDescription.mFormatID
-    let flags = streamDescription.mFormatFlags
-    let bytesPerFrame = Int(streamDescription.mBytesPerFrame)
-    let bitsPerChannel = Int(streamDescription.mBitsPerChannel)
-    let frameCount = CMSampleBufferGetNumSamples(sampleBuffer)
-    guard formatID == kAudioFormatLinearPCM, bytesPerFrame > 0, frameCount > 0 else {
-        throw CaptureSessionError.unsupportedAudioFormat("Only linear PCM audio sample buffers are supported.")
-    }
-
-    var blockBuffer: CMBlockBuffer?
-    var neededSize = 0
-    let bufferCount = max(1, Int(streamDescription.mChannelsPerFrame))
-    let audioBufferList = AudioBufferList.allocate(maximumBuffers: bufferCount)
-    defer { audioBufferList.unsafeMutablePointer.deallocate() }
-
-    let status = CMSampleBufferGetAudioBufferListWithRetainedBlockBuffer(sampleBuffer, bufferListSizeNeededOut: &neededSize, bufferListOut: audioBufferList.unsafeMutablePointer, bufferListSize: AudioBufferList.sizeInBytes(maximumBuffers: bufferCount), blockBufferAllocator: kCFAllocatorDefault, blockBufferMemoryAllocator: kCFAllocatorDefault, flags: 0, blockBufferOut: &blockBuffer)
-    guard status == noErr else { throw CaptureSessionError.unsupportedAudioFormat("Could not access audio buffer list (OSStatus \(status)).") }
-
-    if flags & kAudioFormatFlagIsFloat != 0, bitsPerChannel == 32 {
-        return audioBufferList.flatMap { audioBuffer -> [Float] in
-            guard let data = audioBuffer.mData else { return [] }
-            let sampleCount = Int(audioBuffer.mDataByteSize) / MemoryLayout<Float>.size
-            let samples = data.bindMemory(to: Float.self, capacity: sampleCount)
-            return (0..<sampleCount).map { samples[$0] }
-        }
-    }
-
-    if flags & kAudioFormatFlagIsSignedInteger != 0, bitsPerChannel == 16 {
-        return audioBufferList.flatMap { audioBuffer -> [Float] in
-            guard let data = audioBuffer.mData else { return [] }
-            let sampleCount = Int(audioBuffer.mDataByteSize) / MemoryLayout<Int16>.size
-            let samples = data.bindMemory(to: Int16.self, capacity: sampleCount)
-            return (0..<sampleCount).map { Float(samples[$0]) / Float(Int16.max) }
-        }
-    }
-
-    throw CaptureSessionError.unsupportedAudioFormat("Unsupported PCM layout: bitsPerChannel=\(bitsPerChannel), flags=\(flags).")
 }

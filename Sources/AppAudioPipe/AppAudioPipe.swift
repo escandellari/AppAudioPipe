@@ -9,6 +9,9 @@ struct AppAudioPipe {
         case .captureSource(let query):
             let lines = await AudioCaptureSession().run(captureSource: query)
             print(lines.joined(separator: "\n"))
+        case .pipe(let query, let output):
+            let lines = await AudioPipeSession().run(captureSource: query, output: output)
+            print(lines.joined(separator: "\n"))
         case .invalid(let message):
             print(message)
         }
