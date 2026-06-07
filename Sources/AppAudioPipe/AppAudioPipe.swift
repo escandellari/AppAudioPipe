@@ -1,6 +1,4 @@
 import Foundation
-import ScreenCaptureKit
-
 
 @main
 struct AppAudioPipe {
@@ -8,16 +6,7 @@ struct AppAudioPipe {
         print(DiagnosticText.banner)
         print("\n" + AudioDeviceListing(devices: audioDevices()).renderOutputDevicesSection())
 
-        print("\nShareable apps/windows visible to ScreenCaptureKit:")
-        do {
-            let content = try await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: false)
-            let apps = content.applications.sorted { $0.applicationName < $1.applicationName }
-            for app in apps {
-                print("- pid=\(app.processID) \(app.applicationName) bundle=\(app.bundleIdentifier)")
-            }
-        } catch {
-            print("ScreenCaptureKit enumeration failed: \(error)")
-            print("Grant Screen & System Audio Recording permission if macOS asks for it.")
-        }
+        let captureSourceState = await ScreenCaptureKitSourceProvider().listingState()
+        print("\n" + CaptureSourceListing(state: captureSourceState).renderSection())
     }
 }
