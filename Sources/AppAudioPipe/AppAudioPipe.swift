@@ -6,6 +6,8 @@ struct AppAudioPipe {
         switch CaptureCommand.parse(CommandLine.arguments.dropFirst()) {
         case .diagnostics:
             await runDiagnostics()
+        case .help:
+            print(CLIHelpText.render())
         case .captureSource(let query):
             let lines = await AudioCaptureSession().run(captureSource: query)
             print(lines.joined(separator: "\n"))
